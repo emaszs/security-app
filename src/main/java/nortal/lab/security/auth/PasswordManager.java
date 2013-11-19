@@ -1,7 +1,11 @@
 package nortal.lab.security.auth;
 
+import java.io.UnsupportedEncodingException;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.Random;
 
+import org.springframework.security.crypto.codec.Hex;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -34,8 +38,23 @@ public class PasswordManager {
         // TODO: add the code and generate password hash
         // Pseudo code is Hex.encode(SHA1(salt + password))
         // You may use Spring's BCrypt also
-
-        return passwordHash;
+        MessageDigest cript;
+        try {
+            cript = MessageDigest.getInstance("SHA-1");
+            cript.reset();
+            cript.update((salt + passwordHash).getBytes("utf-8"));
+            String saltedPasswordHash = new String(Hex.encode(cript.digest()));
+            return saltedPasswordHash;
+        } catch (NoSuchAlgorithmException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        } catch (UnsupportedEncodingException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+        
+        
+        return null;
     }
 
     public String generateRandomStr() {
