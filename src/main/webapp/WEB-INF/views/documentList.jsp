@@ -13,7 +13,7 @@
     <tbody>
         <c:forEach var="item" items="${documents}">
         <tr>
-            <td><a href="/doc/${item.id}">${item.title}</a></td>
+            <td><a href="/doc/${fn:escapeXml(item.id)}">${fn:escapeXml(item.title)}</a></td>
         </tr>
         </c:forEach>
     </tbody>

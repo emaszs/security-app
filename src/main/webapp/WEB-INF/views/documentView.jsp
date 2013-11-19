@@ -2,7 +2,7 @@
 
 <%@include file="header.jsp" %>
 
-<h3>Secret document: ${doc.title}</h3>
+<h3>Secret document: ${fn:escapeXml(doc.title)}</h3>
     
 <hr>
 
