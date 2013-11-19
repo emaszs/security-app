@@ -9,6 +9,8 @@ import nortal.lab.security.dao.UserDao;
 import nortal.lab.security.entities.Document;
 import nortal.lab.security.entities.User;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.ModelMap;
@@ -20,6 +22,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 
 @Controller
 public class DocumentController {
+    private static final Logger log = LoggerFactory.getLogger(DocumentController.class);
 
     @Autowired
     private DocumentDao documentDao;
@@ -37,7 +40,7 @@ public class DocumentController {
     @RequestMapping("/doc")
     public String list(final ModelMap model, final Principal principal) {
         CustomAuthenticationToken token = ((CustomAuthenticationToken) principal);
-        
+
         List<Document> docs = documentDao.findDocuments(token.getUser().getId());
         model.addAttribute("documents", docs);
 
@@ -52,13 +55,13 @@ public class DocumentController {
      */
     @RequestMapping(value = "/doc/add")
     public String addForm(final ModelMap model, @ModelAttribute("doc") final Document doc) {
-        
+
         List<User> users = userDao.getAllUsers();
         model.addAttribute("users", users);
 
         return "documentAdd";
     }
-    
+
     /**
      * Displays document
      * 
@@ -67,13 +70,17 @@ public class DocumentController {
      * @return
      */
     @RequestMapping("/doc/{id}")
-    public String view(@PathVariable("id") final Long id, final ModelMap model) {
-        // TODO: CustomAuthenticationToken token = ((CustomAuthenticationToken) principal);
-        // Use token.getUser().getId() return id of logged in user. Use this id to remove
-        // Insecure object reference vulnerability
+    public String view(@PathVariable("id") final Long id, final ModelMap model,
+            final Principal principal) {
 
+        CustomAuthenticationToken token = ((CustomAuthenticationToken) principal);
         Document doc = documentDao.getById(id);
-        model.addAttribute("doc", doc);
+
+        log.debug("User with id " + token.getUser().getId()
+                + " attempting to access file that belongs to " + doc.getOwnerId());
+        if (token.getUser().getId().equals(doc.getOwnerId())) {
+            model.addAttribute("doc", doc);
+        }
 
         return "documentView";
     }
@@ -85,8 +92,9 @@ public class DocumentController {
      * @param doc
      * @return
      */
-    @RequestMapping(value = "/doc/add", method = {RequestMethod.POST })
-    public String add(final ModelMap model, @ModelAttribute("doc") final Document doc, final BindingResult result) {
+    @RequestMapping(value = "/doc/add", method = { RequestMethod.POST })
+    public String add(final ModelMap model, @ModelAttribute("doc") final Document doc,
+            final BindingResult result) {
 
         if (doc.getTitle() == null || doc.getTitle().isEmpty()) {
             result.rejectValue("title", "empty-title", "Title is empty");
@@ -99,7 +107,7 @@ public class DocumentController {
         if (result.hasErrors()) {
             List<User> users = userDao.getAllUsers();
             model.addAttribute("users", users);
-            
+
             return "documentAdd";
         }
 

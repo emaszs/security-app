@@ -1,5 +1,7 @@
 package nortal.lab.security.controllers;
 
+import java.security.NoSuchAlgorithmException;
+
 import nortal.lab.security.auth.PasswordManager;
 import nortal.lab.security.dao.UserDao;
 import nortal.lab.security.entities.User;
@@ -45,7 +47,13 @@ public class LoginController {
             return "signup";
         } else {
             String salt = passwordManager.generateRandomStr();
-            String hash = passwordManager.generateUserPasswordHash(account.getPasswordHash(), salt);
+            String hash;
+            try {
+                hash = passwordManager.generateUserPasswordHash(account.getPasswordHash(), salt);
+            } catch (NoSuchAlgorithmException e) {
+                hash = null;
+                e.printStackTrace();
+            }
 
             account.setPasswordHash(hash);
             account.setPasswordSalt(salt);
